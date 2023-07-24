@@ -7,7 +7,7 @@ export default function CopiarPortapapeles() {
       (res) => res.blob()
     ),
     {
-      pending: 'Copiando imagen',
+      pending: 'Copiando imagen 📷',
       success: 'Imagen copiada al portapapeles 👌',
       error: 'Error al copiar imagen 🤯'
     })
