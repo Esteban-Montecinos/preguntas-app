@@ -22,6 +22,7 @@ export default async function Home() {
     await supabase.from("preguntas").insert({ text: pregunta, id });
 
     revalidatePath("/")
+    redirect(`/${id}`)
   }
   return (
     <div className="grid gap-8">
