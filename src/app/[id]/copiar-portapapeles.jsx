@@ -7,8 +7,8 @@ export default function CopiarPortapapeles() {
       (res) => res.blob()
     ),
     {
-      pending: 'Copiando imagen 📷',
-      success: 'Imagen copiada al portapapeles 👌',
+      pending: 'Copiando imagen 🤔',
+      success: 'Imagen copiada 🤩',
       error: 'Error al copiar imagen 🤯'
     })
     await navigator.clipboard.write([
@@ -25,7 +25,7 @@ export default function CopiarPortapapeles() {
       >
         Copiar al portapapeles
       </button>
-      <ToastContainer />
+      <ToastContainer/>
     </>
   );
 }
