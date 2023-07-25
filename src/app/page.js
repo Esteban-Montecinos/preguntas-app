@@ -1,27 +1,27 @@
 import { supabase } from "@/services/clientSupabase";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-
+import { redirect } from "next/navigation";
 
 async function getPreguntas() {
-  const preguntas= await supabase
-  .from('preguntas')
-  .select('*').then(({data})=> data)
+  const preguntas = await supabase
+    .from("preguntas")
+    .select("*")
+    .then(({ data }) => data);
   return preguntas;
 }
 
 export default async function Home() {
-  const preguntas = await getPreguntas()
+  const preguntas = await getPreguntas();
 
   async function handleSubmit(formData) {
-    'use server'
-    const pregunta = formData.get("pregunta")
-    const id = Date.now().toString()
+    "use server";
+    const pregunta = formData.get("pregunta");
+    const id = Date.now().toString();
 
-    await supabase.from("preguntas").insert({text: pregunta, id})
+    await supabase.from("preguntas").insert({ text: pregunta, id });
+
     revalidatePath("/")
-    redirect(`/${id}`)
   }
   return (
     <div className="grid gap-8">
@@ -52,6 +52,11 @@ export default async function Home() {
             <p className="rounded-b-lg bg-white p-4 text-black text-xl ">
               {pregunta.text}
             </p>
+            {pregunta.respuesta ? (
+              <p className="rounded-lg bg-gray-200 mt-2 p-2 text-black text-xl font-medium">
+                {pregunta.respuesta}
+              </p>
+            ) : null}
           </Link>
         ))}
       </article>

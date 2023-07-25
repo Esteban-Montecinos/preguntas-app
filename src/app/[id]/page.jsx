@@ -17,7 +17,7 @@ export default async function Pregunta({ params: { id } }) {
 
   return (
     <article className="grid gap-4">
-    <Link href="/">← Volver atrás</Link>
+    <Link href="/" className="rounded-lg text-center bg-gray-200 p-2 w-40 hover:bg-gray-300 transition-colors">← Volver atrás</Link>
       <section key={pregunta.id} className="grid">
         <p className="rounded-t-lg bg-emerald-500 p-4 text-white text-xl font-medium">
           Preguntas
