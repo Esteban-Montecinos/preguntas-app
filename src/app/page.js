@@ -1,61 +1,66 @@
+import { supabase } from "@/services/clientSupabase";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {cookies} from "next/headers";
-import {createServerActionClient, createServerComponentClient} from "@supabase/auth-helpers-nextjs";
+
+async function getPreguntas() {
+  const preguntas = await supabase
+    .from("preguntas")
+    .select("*")
+    .then(({ data }) => data);
+  return preguntas;
+}
 
 export default async function Home() {
-  const scSupabase = createServerComponentClient({cookies});
-  const preguntas = await scSupabase
-    .from("preguntas")
-    .select()
-    .eq("accepted", true)
-    .then(({data}) => data );
+  const preguntas = await getPreguntas();
 
-  async function addQuestion(formData) {
+  async function handleSubmit(formData) {
     "use server";
+    const pregunta = formData.get("pregunta");
+    const id = Date.now().toString();
 
-    const saSupabase = createServerActionClient({cookies});
+    await supabase.from("preguntas").insert({ text: pregunta, id });
 
-    const id = Date.now();
-
-    await saSupabase.from("preguntas").insert({text: formData.get("text"), id});
-
-    revalidatePath("/");
-    redirect(`/${id}`);
+    revalidatePath("/")
+    redirect(`/${id}`)
   }
-
   return (
-    <div className="grid gap-12">
-      <form action={addQuestion}>
-        <h2 className="rounded-t-lg bg-emerald-500 p-4 text-xl text-white font-bold">Preguntas</h2>
-        <input
-          className="w-full rounded-b-lg bg-white p-4 text-xl text-black"
-          name="text"
-          placeholder="Me pregunto si..."
-        />
+    <div className="grid gap-8">
+      <form action={handleSubmit} className="grid gap-4">
+        <section className="grid">
+          <p className="rounded-t-lg bg-emerald-500 p-4 text-white text-xl font-medium">
+            Preguntas
+          </p>
+          <input
+            name="pregunta"
+            placeholder="Me pregunto si..."
+            className="rounded-b-lg bg-white p-4 text-black text-xl"
+          />
+        </section>
         <button
-          className="mt-4 w-full rounded-lg bg-emerald-500 p-4 text-lg font-medium text-white transition-colors hover:bg-emerald-600"
           type="submit"
+          className="bg-emerald-500 text-white rounded-lg p-4 text-xl hover:bg-emerald-600 transition-colors"
         >
           Enviar pregunta
         </button>
       </form>
-      <hr className="opacity-20" />
-      {preguntas.length ? (
-        <article className="grid grid-cols-[repeat(auto-fill,minmax(256px,1fr))] gap-4">
-          {preguntas.map(({text, id}) => (
-            <Link key={id} href={`/${id}`}>
-              <section>
-                <h2 className="rounded-t-lg bg-emerald-500 p-4 text-xl font-bold">Preguntas</h2>
-                <h1 className="rounded-b-lg bg-white p-4 text-xl text-black">{text}</h1>
-              </section>
-            </Link>
-          ))}
-        </article>
-      ) : (
-        <p className="text-center opacity-50">No hay preguntas.</p>
-      )}
+      <article className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(230px,1fr))] items-start">
+        {preguntas.map((pregunta) => (
+          <Link href={`/${pregunta.id}`} key={pregunta.id} className="grid">
+            <p className="rounded-t-lg bg-emerald-500 p-4 text-white text-xl font-medium">
+              Preguntas
+            </p>
+            <p className="rounded-b-lg bg-white p-4 text-black text-xl ">
+              {pregunta.text}
+            </p>
+            {pregunta.respuesta ? (
+              <p className="rounded-lg bg-gray-200 mt-2 p-2 text-black text-xl font-medium">
+                {pregunta.respuesta}
+              </p>
+            ) : null}
+          </Link>
+        ))}
+      </article>
     </div>
   );
 }
