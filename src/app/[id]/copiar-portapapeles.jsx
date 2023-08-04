@@ -1,6 +1,8 @@
 "use client";
+
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+
 export default function CopiarPortapapeles() {
   async function handleClick() {
     const image = await toast.promise(fetch(`${location.pathname}/opengraph-image`).then(

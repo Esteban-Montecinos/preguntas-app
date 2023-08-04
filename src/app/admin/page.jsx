@@ -1,54 +1,73 @@
-import { supabase } from "@/services/clientSupabase";
-import { revalidatePath } from "next/cache";
-import Link from "next/link";
+import {createServerActionClient, createServerComponentClient} from "@supabase/auth-helpers-nextjs";
+import {revalidatePath} from "next/cache";
+import {cookies} from "next/headers";
 
-async function getPreguntas() {
-  const preguntas = await supabase
+export default async function AdminPage() {
+  const scSupabase = createServerComponentClient({cookies});
+
+  const preguntas = await scSupabase
     .from("preguntas")
-    .select("*")
-    .then(({ data }) => data);
-  return preguntas;
-}
-export default async function Admin() {
-  const preguntas = await getPreguntas();
-  async function handleSubmit(formData) {
-      "use server";
-    const id = formData.get("id");
+    .select()
+    .then(({data}) => data );
 
-    const { error } = await supabase.from("preguntas").delete().eq("id", id)
+  async function removeAction(formData) {
+    "use server";
+
+    const saSupabase = createServerActionClient({cookies});
+
+    await saSupabase
+      .from("preguntas")
+      .delete()
+      .eq("id", Number(formData.get("id")));
 
     revalidatePath("/admin");
   }
-  
-  return (
-    <article className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(230px,1fr))] items-start">
-      {preguntas.map((pregunta) => (
-        <section key={pregunta.id} className="grid">
-          <Link href={`/admin/${pregunta.id}`} className="grid">
-            <p className="rounded-t-lg bg-emerald-500 p-4 text-white text-xl font-medium">
-              Preguntas
-            </p>
-            <p className="rounded-b-lg bg-white p-4 text-black text-xl font-medium">
-              {pregunta.text}
-            </p>
-          </Link>
-          {pregunta.respuesta ? (
-            <p className="rounded-lg bg-gray-300 opacity-90 mt-2 p-2 text-black text-xl font-medium">
-              {pregunta.respuesta}
-            </p>
-          ) : null}
-          <form action={handleSubmit} className="grid mt-2 w-full">
-              <input type="hidden" name="id" value={pregunta.id} />
 
-              <button
-                type="submit"
-                className="bg-red-500 text-white rounded-lg p-2 text-xl hover:bg-red-600 transition-colors"
+  async function acceptAction(formData) {
+    "use server";
+
+    const saSupabase = createServerActionClient({cookies});
+
+    await saSupabase
+      .from("preguntas")
+      .update({accepted: true})
+      .eq("id", Number(formData.get("id")));
+
+    revalidatePath("/admin");
+  }
+
+  return (
+    <div className="grid gap-12">
+      {preguntas.length ? (
+        <article className="grid grid-cols-[repeat(auto-fill,minmax(256px,1fr))] gap-4">
+          {preguntas.map(({text, id, accepted}) => (
+            <div key={id}>
+              <h2
+                className={`flex items-center justify-between rounded-t-lg p-4 text-xl font-bold ${
+                  accepted ? `bg-green-500` : `bg-orange-500`
+                }`}
               >
-                Borrar pregunta 🗑️
-              </button>
-            </form>
-        </section>
-      ))}
-    </article>
+                <span>Preguntas</span>
+                <div className="flex items-center gap-4">
+                  <form action={removeAction}>
+                    <input name="id" type="hidden" value={id} />
+                    <button className="text-3xl leading-none" type="submit">
+                      ×
+                    </button>
+                  </form>
+                  <form action={acceptAction}>
+                    <input name="id" type="hidden" value={id} />
+                    <button type="submit">✓</button>
+                  </form>
+                </div>
+              </h2>
+              <h1 className="rounded-b-lg bg-white p-4 text-xl text-black">{text}</h1>
+            </div>
+          ))}
+        </article>
+      ) : (
+        <p className="text-center opacity-50">No hay preguntas.</p>
+      )}
+    </div>
   );
 }

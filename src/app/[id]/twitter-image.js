@@ -1,16 +1,31 @@
-import { supabase } from "@/services/clientSupabase";
-import { ImageResponse } from "next/server";
+import {createRouteHandlerClient} from "@supabase/auth-helpers-nextjs";
+import {cookies} from "next/headers";
+import {ImageResponse} from "next/server";
 
+// Route segment config
 export const runtime = "edge";
+
+// Image metadata
+export const alt = "Questioncy";
+
+export const size = {
+  width: 1200,
+  height: 630,
+};
+
 export const contentType = "image/png";
 
-export default async function Image({ params: { id } }) {
-  const pregunta = await supabase
+const rhSupabase = createRouteHandlerClient({cookies});
+
+// Image generation
+export default async function Image({params: {id}}) {
+  const pregunta = await rhSupabase
     .from("preguntas")
     .select()
     .eq("id", id)
     .single()
-    .then(({ data }) => data);
+    .then(({data}) => data);
+
   return new ImageResponse(
     (
       <div

@@ -1,32 +1,29 @@
-import { supabase } from "@/services/clientSupabase";
 import Link from "next/link";
+import {createServerComponentClient} from "@supabase/auth-helpers-nextjs";
+import {cookies} from "next/headers";
+
 import CopiarPortapapeles from "./copiar-portapapeles";
 
-async function getPregunta(id) {
-  const pregunta = await supabase
+export default async function QuestionPage({params: {id}}) {
+  const scSupabase = createServerComponentClient({
+    cookies,
+  });
+
+  const pregunta = await scSupabase
     .from("preguntas")
     .select()
     .eq("id", id)
     .single()
-    .then(({ data }) => data);
-  return pregunta;
-}
-
-export default async function Pregunta({ params: { id } }) {
-  const pregunta = await getPregunta(id);
+    .then(({data}) => data);
 
   return (
     <article className="grid gap-4">
-    <Link href="/" className="rounded-lg text-center bg-gray-200 p-2 w-40 hover:bg-gray-300 transition-colors">← Volver atrás</Link>
-      <section key={pregunta.id} className="grid">
-        <p className="rounded-t-lg bg-emerald-500 p-4 text-white text-xl font-medium">
-          Preguntas
-        </p>
-        <p className="rounded-b-lg bg-white p-4 text-black text-xl ">
-          {pregunta.text}
-        </p>
+      <Link href="/">← Volver atrás</Link>
+      <section>
+        <h2 className="rounded-t-lg bg-pink-500 p-4 text-xl font-bold">Preguntas</h2>
+        <h1 className="rounded-b-lg bg-white p-4 text-xl text-black">{pregunta.text}</h1>
       </section>
-      <CopiarPortapapeles/>
+      <CopiarPortapapeles />
     </article>
   );
 }
